@@ -450,8 +450,9 @@
       @endphp
       <div class="legend-row">
         @foreach($statusData ?? [] as $status => $count)
+          @php $bg = $legendColors[$status] ?? '#8E8BA8' @endphp
           <span class="legend-item">
-            <span class="legend-sq" style="background:{{ $legendColors[$status] ?? '#8E8BA8' }}"></span>
+            <span class="legend-sq" style="background:{{ $bg }}"></span>
             {{ ucfirst($status) }} &nbsp;<strong style="color:var(--text-1)">{{ $count }}</strong>
           </span>
         @endforeach

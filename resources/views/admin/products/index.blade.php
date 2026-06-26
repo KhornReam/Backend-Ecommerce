@@ -4,7 +4,7 @@
 
 @section('content')
 
-<style>
+
  <style>
 
 :root{
@@ -433,7 +433,7 @@ tbody tr:last-child td{
     }
 }
 
-</style>
+
 </style>
 
 <div class="wrap">

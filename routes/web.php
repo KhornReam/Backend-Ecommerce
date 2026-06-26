@@ -16,7 +16,7 @@ use App\Http\Controllers\Admin\{
 |--------------------------------------------------------------------------
 */
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('admin.login');
 });
 
 /*
