@@ -14,6 +14,8 @@ class Wishlist extends Model
         'product_id',
     ];
 
+    protected $hidden = ['user'];
+
     public function user()
     {
         return $this->belongsTo(User::class);

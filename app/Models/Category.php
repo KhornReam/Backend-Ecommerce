@@ -14,6 +14,8 @@ class Category extends Model
         'slug',
     ];
 
+    protected $hidden = ['products'];
+
     public function products()
     {
         return $this->hasMany(Product::class);

@@ -1,0 +1,50 @@
+Array
+(
+    [all] => Array
+        (
+            [name] => Ream Khorn Updated
+            [email] => reamkhorn12345@gmail.com
+            [phone] => +1234567890
+            [avatar] => fake image data
+        )
+
+    [input] => Array
+        (
+            [name] => Ream Khorn Updated
+            [email] => reamkhorn12345@gmail.com
+            [phone] => +1234567890
+            [avatar] => fake image data
+        )
+
+    [json] => Array
+        (
+        )
+
+    [files] => Array
+        (
+        )
+
+    [content_type] => multipart/form-data; boundary=------------------------gNba2kr1gSGjfde1RKOvuK
+    [method] => PUT
+    [content] => --------------------------gNba2kr1gSGjfde1RKOvuK
+Content-Disposition: form-data; name="name"
+
+Ream Khorn Updated
+--------------------------gNba2kr1gSGjfde1RKOvuK
+Content-Disposition: form-data; name="email"
+
+reamkhorn12345@gmail.com
+--------------------------gNba2kr1gSGjfde1RKOvuK
+Content-Disposition: form-data; name="phone"
+
++1234567890
+--------------------------gNba2kr1gSGjfde1RKOvuK
+Content-Disposition: form-data; name="avatar"; filename="test_avatar.jpg"
+Content-Type: image/jpeg
+
+fake image data
+--------------------------gNba2kr1gSGjfde1RKOvuK--
+
+    [server_content_type] => multipart/form-data; boundary=------------------------gNba2kr1gSGjfde1RKOvuK
+    [server_content_length] => 574
+)

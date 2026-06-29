@@ -6,21 +6,67 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class ProfileController extends Controller
 {
-    public function me()
+    protected function getUserFromToken(Request $request)
     {
-        $user = auth()->user();
-        $user->load(['cart.product.category', 'wishlist.product.category', 'orders.items.product']);
+        $token = $request->bearerToken();
+        if (!$token) {
+            return null;
+        }
+        
+        $accessToken = PersonalAccessToken::findToken($token);
+        if (!$accessToken) {
+            return null;
+        }
+        
+        return \App\Models\User::select('id', 'name', 'email', 'role', 'avatar', 'last_login_at', 'created_at', 'updated_at')
+            ->find($accessToken->tokenable_id);
+    }
+
+    public function me(Request $request)
+    {
+        $user = $this->getUserFromToken($request);
+        
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+        
         return response()->json([
-            'data' => $user
+            'data' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+                'avatar' => $user->avatar,
+                'last_login_at' => $user->last_login_at,
+                'created_at' => $user->created_at,
+                'updated_at' => $user->updated_at,
+            ]
         ]);
     }
 
     public function update(Request $request)
     {
-        $user = auth()->user();
+        // Handle JSON request body - manually parse if needed
+        $contentType = $request->header('Content-Type');
+        $rawContent = file_get_contents('php://input');
+        
+        if (str_contains($contentType, 'application/json')) {
+            $input = json_decode($rawContent, true);
+            if (is_array($input)) {
+                $request->merge($input);
+            }
+        }
+        // For multipart/form-data with _method=PUT, Laravel handles parsing automatically
+        
+        $user = $this->getUserFromToken($request);
+        
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
 
         $request->validate([
             'name' => 'required|string|max:255',
@@ -32,7 +78,6 @@ class ProfileController extends Controller
         $data = $request->only(['name', 'email', 'phone']);
 
         if ($request->hasFile('avatar')) {
-            // Delete old avatar if exists
             if ($user->avatar && Storage::disk('public')->exists('avatars/' . $user->avatar)) {
                 Storage::disk('public')->delete('avatars/' . $user->avatar);
             }
@@ -44,20 +89,40 @@ class ProfileController extends Controller
 
         $user->update($data);
 
+        // Return updated user without relationships
+        $user = \App\Models\User::select('id', 'name', 'email', 'phone', 'role', 'avatar', 'last_login_at', 'created_at', 'updated_at')
+            ->find($user->id);
+
         return response()->json([
             'message' => 'Profile updated successfully',
-            'data' => $user->fresh()->load(['cart.product.category', 'wishlist.product.category', 'orders.items.product'])
+            'data' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone,
+                'role' => $user->role,
+                'avatar' => $user->avatar,
+                'last_login_at' => $user->last_login_at,
+                'created_at' => $user->created_at,
+                'updated_at' => $user->updated_at,
+            ]
         ]);
     }
 
     public function updatePassword(Request $request)
     {
+        $user = $this->getUserFromToken($request);
+        
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
         $request->validate([
             'current_password' => 'required|current_password',
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        auth()->user()->update([
+        $user->update([
             'password' => Hash::make($request->password),
         ]);
 

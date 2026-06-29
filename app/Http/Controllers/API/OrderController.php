@@ -7,14 +7,31 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Cart;
 use Illuminate\Http\Request;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class OrderController extends Controller
 {
-    public function checkout()
+    protected function getUserId(Request $request)
     {
-        $user = auth()->user();
+        $token = $request->bearerToken();
+        if (!$token) {
+            return null;
+        }
+        
+        $accessToken = PersonalAccessToken::findToken($token);
+        return $accessToken?->tokenable_id;
+    }
 
-        $cartItems = Cart::with('product')->where('user_id', $user->id)->get();
+    public function checkout(Request $request)
+    {
+        $userId = $this->getUserId($request);
+        if (!$userId) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $cartItems = Cart::with('product:id,name,price,stock')
+            ->where('user_id', $userId)
+            ->get();
 
         if ($cartItems->isEmpty()) {
             return response()->json(['message' => 'Cart is empty'], 400);
@@ -29,7 +46,7 @@ class OrderController extends Controller
         }
 
         $order = Order::create([
-            'user_id' => $user->id,
+            'user_id' => $userId,
             'total' => 0,
             'status' => 'pending',
         ]);
@@ -50,18 +67,44 @@ class OrderController extends Controller
         }
 
         $order->update(['total' => $total]);
-        Cart::where('user_id', $user->id)->delete();
+        Cart::where('user_id', $userId)->delete();
 
+        // Return order without circular references
         return response()->json([
             'message' => 'Order placed successfully',
-            'order' => $order->load('items.product'),
+            'order' => [
+                'id' => $order->id,
+                'user_id' => $order->user_id,
+                'total' => $order->total,
+                'status' => $order->status,
+                'created_at' => $order->created_at,
+                'items' => $order->items->map(function ($item) {
+                    return [
+                        'id' => $item->id,
+                        'product_id' => $item->product_id,
+                        'quantity' => $item->quantity,
+                        'price' => $item->price,
+                        'product' => $item->product ? [
+                            'id' => $item->product->id,
+                            'name' => $item->product->name,
+                            'price' => $item->product->price,
+                            'image' => $item->product->image,
+                        ] : null,
+                    ];
+                }),
+            ]
         ], 201);
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $orders = Order::with('items.product')
-            ->where('user_id', auth()->id())
+        $userId = $this->getUserId($request);
+        if (!$userId) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+        
+        $orders = Order::with(['items:id,order_id,product_id,quantity,price'])
+            ->where('user_id', $userId)
             ->latest()
             ->paginate(10);
 
@@ -70,14 +113,39 @@ class OrderController extends Controller
         ]);
     }
 
-    public function show($id)
+    public function show(Request $request, $id)
     {
-        $order = Order::with('items.product')
-            ->where('user_id', auth()->id())
+        $userId = $this->getUserId($request);
+        if (!$userId) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+        
+        $order = Order::with(['items:id,order_id,product_id,quantity,price', 'items.product:id,name,price,image'])
+            ->where('user_id', $userId)
             ->findOrFail($id);
 
         return response()->json([
-            'data' => $order
+            'data' => [
+                'id' => $order->id,
+                'user_id' => $order->user_id,
+                'total' => $order->total,
+                'status' => $order->status,
+                'created_at' => $order->created_at,
+                'items' => $order->items->map(function ($item) {
+                    return [
+                        'id' => $item->id,
+                        'product_id' => $item->product_id,
+                        'quantity' => $item->quantity,
+                        'price' => $item->price,
+                        'product' => $item->product ? [
+                            'id' => $item->product->id,
+                            'name' => $item->product->name,
+                            'price' => $item->product->price,
+                            'image' => $item->product->image,
+                        ] : null,
+                    ];
+                }),
+            ]
         ]);
     }
 }

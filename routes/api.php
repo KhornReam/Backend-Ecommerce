@@ -11,6 +11,7 @@ use App\Http\Controllers\API\{
     ProfileController,
     ReviewController
 };
+use Illuminate\Http\Request;
 
 Route::prefix('v1')->group(function () {
 
@@ -32,6 +33,56 @@ Route::prefix('v1')->group(function () {
     Route::get('/products/{id}/reviews', [ReviewController::class, 'productReviews']);
     Route::get('/categories', [CategoryController::class, 'index']);
 
+    // Test endpoint without auth
+    Route::get('/test-no-auth', function () {
+        return response()->json(['message' => 'No auth required']);
+    });
+
+// Test endpoint - manual token check
+    Route::get('/test-token', function (Request $request) {
+        $token = $request->bearerToken();
+        if (!$token) {
+            return response()->json(['error' => 'No token'], 401);
+        }
+        
+        $accessToken = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
+        if (!$accessToken) {
+            return response()->json(['error' => 'Invalid token'], 401);
+        }
+        
+        return response()->json(['user_id' => $accessToken->tokenable_id]);
+    });
+
+    // Test DB query
+    Route::get('/test-db', function (Request $request) {
+        $token = $request->bearerToken();
+        $accessToken = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
+        if (!$accessToken) {
+            return response()->json(['error' => 'Invalid token'], 401);
+        }
+        $userId = $accessToken->tokenable_id;
+        
+        $cartItems = \Illuminate\Support\Facades\DB::table('carts')
+            ->where('user_id', $userId)
+            ->get();
+        
+        return response()->json(['data' => $cartItems]);
+    });
+
+    // Test Cart controller directly
+    Route::get('/test-cart', function (Request $request) {
+        $token = $request->bearerToken();
+        $accessToken = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
+        if (!$accessToken) {
+            return response()->json(['error' => 'Invalid token'], 401);
+        }
+        $userId = $accessToken->tokenable_id;
+        
+        $cartItems = \App\Models\Cart::where('user_id', $userId)->get();
+        
+        return response()->json(['data' => $cartItems]);
+    });
+
     /*
     |--------------------------------------------------------------------------
     | PROTECTED ROUTES (SANCTUM REQUIRED)
@@ -39,11 +90,16 @@ Route::prefix('v1')->group(function () {
     */
     Route::middleware('auth:sanctum')->group(function () {
 
-        // Profile
-        Route::get('/me', [ProfileController::class, 'me']);
-        Route::put('/me', [ProfileController::class, 'update']);
-        Route::put('/me/password', [ProfileController::class, 'updatePassword']);
-        Route::post('/logout', [AuthController::class, 'logout']);
+        // Test endpoint - minimal user load
+        Route::get('/test-auth', function () {
+            $userId = auth()->id();
+            return response()->json(['user_id' => $userId]);
+        });
+
+        // Test endpoint - check auth without user
+        Route::get('/check-auth', function () {
+            return response()->json(['authenticated' => auth()->check()]);
+        });
 
         // Cart
         Route::get('/cart', [CartController::class, 'index']);
@@ -64,6 +120,31 @@ Route::prefix('v1')->group(function () {
         // Reviews
         Route::post('/review', [ReviewController::class, 'store']);
     });
+
+    // Profile - manual token check in controller
+    Route::get('/me', [ProfileController::class, 'me']);
+    Route::put('/me', [ProfileController::class, 'update']);
+    Route::put('/me/password', [ProfileController::class, 'updatePassword']);
+    Route::post('/logout', [AuthController::class, 'logout']);
+
+    // Cart - manual token check in controller
+    Route::get('/cart', [CartController::class, 'index']);
+    Route::post('/cart', [CartController::class, 'store']);
+    Route::put('/cart/{id}', [CartController::class, 'update']);
+    Route::delete('/cart/{id}', [CartController::class, 'destroy']);
+
+    // Wishlist - manual token check in controller
+    Route::get('/wishlist', [WishlistController::class, 'index']);
+    Route::post('/wishlist', [WishlistController::class, 'store']);
+    Route::delete('/wishlist/{id}', [WishlistController::class, 'destroy']);
+
+    // Orders - manual token check in controller
+    Route::post('/checkout', [OrderController::class, 'checkout']);
+    Route::get('/orders', [OrderController::class, 'index']);
+    Route::get('/orders/{id}', [OrderController::class, 'show']);
+
+    // Reviews
+    Route::post('/review', [ReviewController::class, 'store']);
 
     /*
     |--------------------------------------------------------------------------

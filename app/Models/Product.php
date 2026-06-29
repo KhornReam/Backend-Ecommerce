@@ -22,6 +22,8 @@ class Product extends Model
         'price' => 'decimal:2',
     ];
 
+    protected $hidden = ['orderItems', 'cartItems', 'category'];
+
     public function category()
     {
         return $this->belongsTo(Category::class);

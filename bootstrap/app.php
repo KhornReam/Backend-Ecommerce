@@ -17,8 +17,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin'=> AdminMiddleware:: class,
         ]);
-        $middleware->api(prepend: [
-            \Illuminate\Http\Middleware\HandleCors::class,
+        
+        $middleware->api(append: [
+            \Illuminate\Foundation\Http\Middleware\TransformsRequest::class,
+            \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+            \Illuminate\Foundation\Http\Middleware\TrimStrings::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
@@ -33,4 +36,9 @@ return Application::configure(basePath: dirname(__DIR__))
                 ], 401);
             }
         });
+        
+        // Don't report authentication exceptions to avoid circular references in logging
+        $exceptions->dontReport([
+            Illuminate\Auth\AuthenticationException::class,
+        ]);
     })->create();

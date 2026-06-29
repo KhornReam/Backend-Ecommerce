@@ -18,11 +18,15 @@ class User extends Authenticatable
         'password',
         'role',
         'avatar',
+        'phone',
     ];
 
     protected $hidden = [
         'password',
         'remember_token',
+        'orders',
+        'cart',
+        'wishlist',
     ];
 
     protected function casts(): array

@@ -16,6 +16,8 @@ class Review extends Model
         'comment',
     ];
 
+    protected $hidden = ['user', 'product'];
+
     public function user()
     {
         return $this->belongsTo(User::class);

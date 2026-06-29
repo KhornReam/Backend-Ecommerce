@@ -317,121 +317,6 @@ tbody tr:last-child td{
 
 /* ================= PAGINATION ================= */
 
-.pagination{
-    margin-top:24px;
-
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-}
-
-.pag-info{
-    color:#94a3b8;
-    font-size:12px;
-}
-
-.page-links{
-    display:flex;
-    align-items:center;
-    gap:8px;
-}
-
-.page-links a,
-.page-links span{
-    width:38px;
-    height:38px;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    border-radius:10px;
-
-    background:#111827;
-
-    border:1px solid var(--border);
-
-    color:#cbd5e1;
-
-    text-decoration:none;
-
-    transition:.25s;
-}
-
-.page-links a:hover{
-    background:#1e293b;
-}
-
-.page-links .active,
-.page-links span.current{
-    background:linear-gradient(
-        135deg,
-        #2563eb,
-        #4f46e5
-    );
-
-    color:white;
-    border:none;
-}
-
-/* ================= EMPTY ================= */
-
-.empty-state{
-    text-align:center;
-
-    padding:90px 20px;
-
-    color:#94a3b8;
-
-    font-size:14px;
-}
-
-/* ================= SCROLLBAR ================= */
-
-::-webkit-scrollbar{
-    width:8px;
-    height:8px;
-}
-
-::-webkit-scrollbar-track{
-    background:#0f172a;
-}
-
-::-webkit-scrollbar-thumb{
-    background:#334155;
-    border-radius:10px;
-}
-
-/* ================= RESPONSIVE ================= */
-
-@media (max-width:992px){
-
-    .tbl-wrap{
-        overflow-x:auto;
-    }
-
-    table{
-        min-width:900px;
-    }
-}
-
-@media (max-width:768px){
-
-    .toolbar{
-        flex-direction:column;
-        align-items:flex-start;
-        gap:12px;
-    }
-
-    .toolbar h2{
-        font-size:24px;
-    }
-
-    .pagination{
-        flex-direction:column;
-        gap:15px;
-    }
-}
 
 
 </style>
@@ -537,17 +422,9 @@ tbody tr:last-child td{
 
             </table>
         </div>
+       
 
-        <div class="pagination">
-            <span class="pag-info">
-                Showing {{ $products->firstItem() }}–{{ $products->lastItem() }}
-                of {{ $products->total() }} items
-            </span>
-
-            <div class="page-links">
-                {{ $products->links() }}
-            </div>
-        </div>
+      
 
     @endif
 

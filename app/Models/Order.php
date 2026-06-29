@@ -19,6 +19,8 @@ class Order extends Model
         'total' => 'decimal:2',
     ];
 
+    protected $hidden = ['user', 'items'];
+
     public function user()
     {
         return $this->belongsTo(User::class);

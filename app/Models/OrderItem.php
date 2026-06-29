@@ -20,6 +20,8 @@ class OrderItem extends Model
         'price' => 'decimal:2',
     ];
 
+    protected $hidden = ['order'];
+
     public function order()
     {
         return $this->belongsTo(Order::class);

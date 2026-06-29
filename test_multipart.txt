@@ -1,0 +1,18 @@
+--boundary
+Content-Disposition: form-data; name="name"
+
+Ream Khorn Updated
+--boundary
+Content-Disposition: form-data; name="email"
+
+reamkhorn12345@gmail.com
+--boundary
+Content-Disposition: form-data; name="phone"
+
++1234567890
+--boundary
+Content-Disposition: form-data; name="avatar"; filename="test.jpg"
+Content-Type: image/jpeg
+
+fake image data
+--boundary--
